@@ -34,9 +34,7 @@ const HomePage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get(
-          `${baseUrl}/excel-export/get/dropdown/values`
-        );
+        const response = await axios.get(`${baseUrl}/excel-export/get/dropdown/values`);
         setDropDownData(response.data);
         setIsLoading(false);
       } catch (error) {
@@ -91,6 +89,44 @@ const HomePage = () => {
       console.error("Error downloading Excel file:", error);
     }
   };
+
+
+  const handleDownloadCSV = async () => {
+    try {
+      
+      const response = await axios.get(
+        `${baseUrl}/excel-export/download/csv`,
+        {
+          responseType: "arraybuffer",
+          params: {
+            uid: selectedValue,
+          },
+        }
+      );
+
+      // Create a Blob from the response data and trigger download
+      if (response.data) {
+        const currentDate = new Date();
+        const formattedDate = formatDate(currentDate);
+        setFileName(`file-${formattedDate}.csv`);
+        const blob = new Blob([response.data], {
+          type: "application/text",
+        });
+        const link = document.createElement("a");
+        link.href = window.URL.createObjectURL(blob);
+        link.download = `file-${formattedDate}.csv`;
+        link.click();
+        setIsSuccessMessage(true);
+        // Hide the success message after 3000 milliseconds (3 seconds)
+        setTimeout(() => {
+          setIsSuccessMessage(false);
+        }, 8000);
+      }
+    } catch (error) {
+      console.error("Error downloading Excel file:", error);
+    }
+  };
+
 
   const handleComboBoxClear = async () => {
     setSelectedValue(null);

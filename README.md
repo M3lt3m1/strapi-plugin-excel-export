@@ -46,7 +46,7 @@ module.exports = {
 
 - The tables **uid** (api::contact-form.contact-form) need to be given following by its columns required
   - The columns has to be exactly like in the **schema**.
-- Relational fields need to be specified in the relation. For example consider the relation as solution and the column wanted from that relation is title.
+- Relational fields need to be specified in the relation. For example consider the relation as _solution_ and the column wanted from that relation is _title_.
 
   - Even if there is no relation needed please keep the relation field empty.
 

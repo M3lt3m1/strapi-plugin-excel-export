@@ -26,4 +26,13 @@ module.exports = [
       auth: false,
     },
   },
+  {
+    method: "GET",
+    path: "/download/csv",
+    handler: "myController.downloadCSV",
+    config: {
+      policies: [],
+      auth: false,
+    },
+  },
 ];

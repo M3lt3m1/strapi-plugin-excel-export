@@ -19,7 +19,6 @@ export default {
         const component = await import(
           /* webpackChunkName: "[request]" */ "./pages/App"
         );
-
         return component;
       },
       permissions: [
