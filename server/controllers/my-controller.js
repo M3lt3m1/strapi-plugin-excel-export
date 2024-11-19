@@ -53,7 +53,7 @@ module.exports = ({ strapi }) => ({
       ...Object.keys(excel?.config[uid]?.relation),   // add field names from relations of the collection
     ];
 
-    let labelMap = excel?.labels||{}
+    let labelMap = excel?.config[uid]?.labels||{}
     let labels = Array.from(headers, (name) => labelMap[name]||name)
 
     let where = {};
@@ -111,7 +111,7 @@ module.exports = ({ strapi }) => ({
         ...excel?.config[uid]?.columns,
         ...Object.keys(excel?.config[uid]?.relation),
       ];
-      let labelMap = excel?.labels||{}
+      let labelMap = excel?.config[uid]?.labels||{}
       let labels = Array.from(headers, (name) => labelMap[name]||name)
 
       // Transform the original headers to the desired format
@@ -193,7 +193,7 @@ module.exports = ({ strapi }) => ({
         ...excel?.config[uid]?.columns,
         ...Object.keys(excel?.config[uid]?.relation),
       ];
-      let labelMap = excel?.labels||{}
+      let labelMap = excel?.config[uid]?.labels||{}
       let labels = Array.from(headers, (name) => labelMap[name]||name)
 
       // Transform the original headers to the desired format

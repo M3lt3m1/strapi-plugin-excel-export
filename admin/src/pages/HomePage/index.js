@@ -93,7 +93,7 @@ const HomePage = () => {
 
   const handleDownloadCSV = async () => {
     try {
-      
+
       const response = await axios.get(
         `${baseUrl}/excel-export/download/csv`,
         {
@@ -166,6 +166,9 @@ const HomePage = () => {
         );
         if (response?.data?.columns) {
           setColumns(response.data.columns);
+        }
+        if (response?.data?.labels) {
+          setColumns(response.data.labels);
         }
         if (response?.data?.data) {
           setTableData(response.data.data);
