@@ -39,6 +39,18 @@ module.exports = {
         },
       },
       locale: "false",
+      labels: {
+        "first_name": "First Name",
+        "last_name": "Last Name",
+        "phone_no": "Phone Number",
+        "business_email: "Business Email",
+        "job_title": "Job Title",
+        "company_name": "Company Name",
+        "company_website": "Company Website",
+        "city": "City",
+        "message": "Company Name",
+        "solution": "Solution",
+      }
     },
   },
 };

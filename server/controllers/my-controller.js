@@ -1,11 +1,12 @@
 "use strict";
 const ExcelJS = require("exceljs");
+const excel = strapi.config.get("excel");
 
 module.exports = ({ strapi }) => ({
 
   // select the collections that are defined into "excel" configuration
   async getDropDownData() {
-    let excel = strapi.config.get("excel");
+    // let excel = strapi.config.get("excel");
     let dropDownValues = [];
     let array = Object.keys(excel?.config);
 
@@ -32,7 +33,7 @@ module.exports = ({ strapi }) => ({
 
   // extract the data from current collection
   async getTableData(ctx) {
-    let excel = strapi.config.get("excel");
+    // let excel = strapi.config.get("excel");
     let uid = ctx?.query?.uid;
     let limit = ctx?.query?.limit;
     let offset = ctx?.query?.offset;
@@ -48,9 +49,12 @@ module.exports = ({ strapi }) => ({
 
     // build the header
     let header = [
-      ...excel?.config[uid]?.columns,                 // add collection field names
-      ...Object.keys(excel?.config[uid]?.relation),   // add field names from relations
+      ...excel?.config[uid]?.columns,                 // add field names of the collection
+      ...Object.keys(excel?.config[uid]?.relation),   // add field names from relations of the collection
     ];
+
+    let labelMap = excel?.labels||{}
+    let labels = Array.from(header, (name) => labelMap[name]||name)
 
     let where = {};
 
@@ -72,12 +76,13 @@ module.exports = ({ strapi }) => ({
       data: tableData,
       count: count,
       columns: header,
+      labels: labels
     };
   },
 
   async downloadExcel(ctx) {
     try {
-      let excel = strapi.config.get("excel");
+      // let excel = strapi.config.get("excel");
 
       strapi.log.info(`export.downloadExcel: config=${JSON.stringify(excel, null, 2)}`);
 
@@ -106,10 +111,13 @@ module.exports = ({ strapi }) => ({
         ...excel?.config[uid]?.columns,
         ...Object.keys(excel?.config[uid]?.relation),
       ];
+      let labelMap = excel?.labels||{}
+      let labels = Array.from(header, (name) => labelMap[name]||name)
 
       // Transform the original headers to the desired format
       let headerRestructure = [];
-      headers?.forEach((element) => {
+      // headers?.forEach((element) => {
+      labels?.forEach((element) => {
         const formattedHeader = element
           .split("_")
           .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -153,7 +161,7 @@ module.exports = ({ strapi }) => ({
 
   async downloadCSV(ctx) {
     try {
-      let excel = strapi.config.get("excel");
+      // let excel = strapi.config.get("excel");
 
       strapi.log.info(`export.downloadExcel: config=${JSON.stringify(excel, null, 2)}`);
 
@@ -185,10 +193,13 @@ module.exports = ({ strapi }) => ({
         ...excel?.config[uid]?.columns,
         ...Object.keys(excel?.config[uid]?.relation),
       ];
+      let labelMap = excel?.labels||{}
+      let labels = Array.from(header, (name) => labelMap[name]||name)
 
       // Transform the original headers to the desired format
       let headerRestructure = [];
-      headers?.forEach((element) => {
+      // headers?.forEach((element) => {
+      labels?.forEach((element) => {
         const formattedHeader = element
           .split("_")
           .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -205,7 +216,7 @@ module.exports = ({ strapi }) => ({
 
       // Define the dropdown list options for the Gender column
 
-      // Add data to the worksheet
+      // Add data to the worksheet, row by row
       excelData?.forEach((row) => {
         // Excel will provide a dropdown with these values.
         worksheet.addRow(row);
@@ -239,7 +250,7 @@ module.exports = ({ strapi }) => ({
    * @returns {json} the target rules
    */
   async restructureObject(inputObject, uid, limit, offset) {
-    let excel = strapi.config.get("excel");
+    // let excel = strapi.config.get("excel");
 
     let where = {};
 
