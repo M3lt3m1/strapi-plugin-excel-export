@@ -48,13 +48,13 @@ module.exports = ({ strapi }) => ({
     let response = await strapi.db.query(uid).findMany(query);
 
     // build the header
-    let header = [
+    let headers = [
       ...excel?.config[uid]?.columns,                 // add field names of the collection
       ...Object.keys(excel?.config[uid]?.relation),   // add field names from relations of the collection
     ];
 
     let labelMap = excel?.labels||{}
-    let labels = Array.from(header, (name) => labelMap[name]||name)
+    let labels = Array.from(headers, (name) => labelMap[name]||name)
 
     let where = {};
 
@@ -75,7 +75,7 @@ module.exports = ({ strapi }) => ({
     return {
       data: tableData,
       count: count,
-      columns: header,
+      columns: labels, // headers,
       labels: labels
     };
   },
@@ -112,7 +112,7 @@ module.exports = ({ strapi }) => ({
         ...Object.keys(excel?.config[uid]?.relation),
       ];
       let labelMap = excel?.labels||{}
-      let labels = Array.from(header, (name) => labelMap[name]||name)
+      let labels = Array.from(headers, (name) => labelMap[name]||name)
 
       // Transform the original headers to the desired format
       let headerRestructure = [];
@@ -194,7 +194,7 @@ module.exports = ({ strapi }) => ({
         ...Object.keys(excel?.config[uid]?.relation),
       ];
       let labelMap = excel?.labels||{}
-      let labels = Array.from(header, (name) => labelMap[name]||name)
+      let labels = Array.from(headers, (name) => labelMap[name]||name)
 
       // Transform the original headers to the desired format
       let headerRestructure = [];
