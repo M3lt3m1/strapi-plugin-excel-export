@@ -57,8 +57,7 @@ const HomePage = () => {
 
   const handleDownloadExcel = async () => {
     try {
-      const response = await axios.get(
-        `${baseUrl}/excel-export/download/excel`,
+      const response = await axios.get(`${baseUrl}/excel-export/download/excel`,
         {
           responseType: "arraybuffer",
           params: {
@@ -152,7 +151,7 @@ const HomePage = () => {
 
   // data table functionality
 
-  const fetchUsers = async (value, page, newPerPage) => {
+  const fetchUsers = async (value, page, itemsPerPage) => {
     setLoading(true);
     const currentSelectedValue = value; // Store the selectedValue in a variable
 
@@ -160,8 +159,8 @@ const HomePage = () => {
 
     if (currentSelectedValue) {
       try {
-        const offset = (page - 1) * newPerPage; // Calculate the offset based on the current page and items per page
-        const limit = newPerPage;
+        const offset = (page - 1) * itemsPerPage; // Calculate the offset based on the current page and items per page
+        const limit = itemsPerPage;
 
         const response = await axios.get(
           `${baseUrl}/excel-export/get/table/data?uid=${value}&limit=${limit}&offset=${offset}`
@@ -192,23 +191,29 @@ const HomePage = () => {
 
   /**
    * Load the data for the required page
-   * @param {number} newPerPage
+   * @param {number} itemsPerPage
    * @param {number} currentPage
    */
-  const handlePerRowsChange = async (newPerPage, currentPage) => {
+  const handlePerRowsChange = async (itemsPerPage, currentPage) => {
     setLoading(true);
     try {
-      const offset = (currentPage - 1) * newPerPage; // Calculate the offset based on the current page and items per page
-      const limit = newPerPage;
+      const offset = (currentPage - 1) * itemsPerPage; // Calculate the offset based on the current page and items per page
+      const limit = itemsPerPage;
 
-      const response = await axios.get(
-        `${baseUrl}/excel-export/get/table/data?uid=${selectedValue}&limit=${limit}&offset=${offset}`
-      );
+      strapi.log.info(`handlePerRowsChange: columnRestructure=${JSON.stringify(columnRestructure, null, 2)}`);
+
+      const response = await axios.get(`${baseUrl}/excel-export/get/table/data?uid=${selectedValue}&limit=${limit}&offset=${offset}`);
+
+      if (response?.data?.labels) {
+        console.log("handlePerRowsChange: set labels");
+        setLabels(response.data.labels);
+      }
 
       if (response?.data?.data) {
         setTableData(response.data.data);
-        setPerPage(newPerPage);
+        setPerPage(itemsPerPage);
       }
+
     } catch (error) {
       console.error("Error fetching table data:", error);
     } finally {
