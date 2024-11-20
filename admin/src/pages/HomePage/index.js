@@ -128,15 +128,13 @@ const HomePage = () => {
     }
   };
 
-
   const handleComboBoxClear = async () => {
     setSelectedValue(null);
     setTableData([]);
   };
 
   const columnRestructure = columns.map((property) => ({
-    name:
-      property?.charAt(0).toUpperCase() + property?.slice(1).replace(/_/g, " "),
+    name: labels ? labels[property] : property?.charAt(0).toUpperCase() + property?.slice(1).replace(/_/g, " "),
     selector: (row) => row[property],
   }));
 
@@ -215,7 +213,7 @@ const HomePage = () => {
           <HeaderLayout title="Matchbox Export" as="h2" />
           <ContentLayout>
             <Stack>
-              
+
               <Box padding={4} width="600px">
                 <Combobox
                   label="Collection Type"
