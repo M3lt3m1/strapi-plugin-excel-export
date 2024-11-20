@@ -139,7 +139,7 @@ const HomePage = () => {
     selector: (row) => row[property],
   }));
 
-  console.log(`columnRestructure: %{JSON.stringify(columnRestructure, null, 2)}`);
+  strapi.log.info(`columnRestructure: ${JSON.stringify(columnRestructure, null, 2)}`);
 
   // Function to format date as "DD-MM-YYYY-HH-mm-ss"
   const formatDate = (date) => {
@@ -149,11 +149,10 @@ const HomePage = () => {
     const hours = date.getHours().toString().padStart(2, "0");
     const minutes = date.getMinutes().toString().padStart(2, "0");
     const seconds = date.getSeconds().toString().padStart(2, "0");
-
     return `${day}-${month}-${year}-${hours}-${minutes}-${seconds}`;
   };
 
-  //data table functionality
+  // data table functionality
 
   const fetchUsers = async (value, page, newPerPage) => {
     setLoading(true);
@@ -167,9 +166,11 @@ const HomePage = () => {
           `${baseUrl}/excel-export/get/table/data?uid=${value}&limit=${limit}&offset=${offset}`
         );
         if (response?.data?.columns) {
+          console.log("fetchUsers: set columns");
           setColumns(response.data.columns);
         }
         if (response?.data?.labels) {
+          console.log("fetchUsers: set labels");
           setLabels(response.data.labels);
         }
         if (response?.data?.data) {
@@ -188,6 +189,11 @@ const HomePage = () => {
     fetchUsers(selectedValue, page, perPage);
   };
 
+  /**
+   * Load the data for the required page
+   * @param {number} newPerPage
+   * @param {number} currentPage
+   */
   const handlePerRowsChange = async (newPerPage, currentPage) => {
     setLoading(true);
     try {

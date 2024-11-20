@@ -77,7 +77,7 @@ module.exports = ({ strapi }) => ({
       data: tableData,
     };
 
-    strapi.log.info(`export.downloadExcel: getTableData=${JSON.stringify(config, null, 2).substring(0,250)}...`);
+    strapi.log.info(`export.downloadExcel: getTableData=${JSON.stringify(config, null, 2).substring(0,500)}...`);
 
     return (config);
   },
