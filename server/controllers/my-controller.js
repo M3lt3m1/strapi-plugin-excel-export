@@ -127,7 +127,7 @@ module.exports = ({ strapi }) => ({
         headerRestructure.push(formattedHeader);
       });
 
-      strapi.log.info(`export.downloadExcel: excelHeader=${JSON.stringify(headerRestructure, null, 2)`);
+      strapi.log.info(`export.downloadExcel: excelHeader=${JSON.stringify(headerRestructure, null, 2)}`);
 
       // Define dynamic column headers
       worksheet.columns = headers.map((header, index) => ({
@@ -211,7 +211,7 @@ module.exports = ({ strapi }) => ({
         headerRestructure.push(formattedHeader);
       });
 
-      strapi.log.info(`export.downloadCSV: excelHeader=${JSON.stringify(headerRestructure, null, 2)`);
+      strapi.log.info(`export.downloadCSV: excelHeader=${JSON.stringify(headerRestructure, null, 2)}`);
 
       // Define dynamic column headers
       worksheet.columns = headers.map((header, index) => ({
