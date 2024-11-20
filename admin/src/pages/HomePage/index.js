@@ -139,8 +139,6 @@ const HomePage = () => {
     selector: (row) => row[property],
   }));
 
-  strapi.log.info(`columnRestructure: ${JSON.stringify(columnRestructure, null, 2)}`);
-
   // Function to format date as "DD-MM-YYYY-HH-mm-ss"
   const formatDate = (date) => {
     const day = date.getDate().toString().padStart(2, "0");
@@ -157,6 +155,9 @@ const HomePage = () => {
   const fetchUsers = async (value, page, newPerPage) => {
     setLoading(true);
     const currentSelectedValue = value; // Store the selectedValue in a variable
+
+    strapi.log.info(`fetchUsers: columnRestructure=${JSON.stringify(columnRestructure, null, 2)}`);
+
     if (currentSelectedValue) {
       try {
         const offset = (page - 1) * newPerPage; // Calculate the offset based on the current page and items per page
