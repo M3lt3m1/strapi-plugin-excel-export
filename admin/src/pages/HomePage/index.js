@@ -155,7 +155,7 @@ const HomePage = () => {
     setLoading(true);
     const currentSelectedValue = value; // Store the selectedValue in a variable
 
-    strapi.log.info(`fetchUsers: columnRestructure=${JSON.stringify(columnRestructure, null, 2)}`);
+    console.log(`fetchUsers: columnRestructure=${JSON.stringify(columnRestructure, null, 2)}`);
 
     if (currentSelectedValue) {
       try {
