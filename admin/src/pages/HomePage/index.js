@@ -19,6 +19,7 @@ const HomePage = () => {
 
   const [dropDownData, setDropDownData] = useState([]);
 
+  const [labels, setLabels] = useState([]);
   const [columns, setColumns] = useState([]);
   const [tableData, setTableData] = useState([]);
   const [selectedValue, setSelectedValue] = useState(null);
@@ -168,7 +169,7 @@ const HomePage = () => {
           setColumns(response.data.columns);
         }
         if (response?.data?.labels) {
-          setColumns(response.data.labels);
+          setLabels(response.data.labels);
         }
         if (response?.data?.data) {
           setTableData(response.data.data);
@@ -211,9 +212,10 @@ const HomePage = () => {
     <Box background="neutral100">
       <Layout>
         <>
-          <HeaderLayout title="Excel Download" as="h2" />
+          <HeaderLayout title="Matchbox Export" as="h2" />
           <ContentLayout>
             <Stack>
+              
               <Box padding={4} width="600px">
                 <Combobox
                   label="Collection Type"
@@ -230,6 +232,7 @@ const HomePage = () => {
                   ))}
                 </Combobox>
               </Box>
+
               {selectedValue && (
                 <>
                   <Box padding={4} marginTop={2} className="ml-auto">
@@ -240,7 +243,9 @@ const HomePage = () => {
                     >
                       Download
                     </Button>
+
                     <br />
+
                     {isSuccessMessage && (
                       <Typography
                         style={{
@@ -252,7 +257,9 @@ const HomePage = () => {
                         Download completed: {fileName} successfully downloaded!
                       </Typography>
                     )}
+
                   </Box>
+
                   <Box className="ml-auto">
                     <DataTable
                       pagination
@@ -265,6 +272,7 @@ const HomePage = () => {
                       onChangePage={handlePageChange}
                     />
                   </Box>
+
                 </>
               )}
             </Stack>

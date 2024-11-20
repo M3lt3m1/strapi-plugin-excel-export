@@ -6,7 +6,7 @@
     "name": "excel-export",
     "description": "A strapi plugin used which can be used to download data in xlsx format",
     "kind": "plugin",
-    "displayName": "Excel Export"
+    "displayName": "Matchbox Export"
   },
   "dependencies": {
     "@strapi/design-system": "^1.6.3",

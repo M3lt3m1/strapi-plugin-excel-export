@@ -1,6 +1,6 @@
-<!-- # Excel Export
+<!-- # Matchbox Export
 
-This plugin allows users to generate and download excel files directly from their strapi application, streamlining data management and analysis. With intuitive configuration options, users can define the data to be included in the excel file.The plugin is designed to be user-friendly, offering a seamless experience for both developers and end-users. -->
+This plugin allows users to generate and download excel files directly from a strapi application, streamlining data management and analysis. With intuitive configuration options, users can define the data to be included in the excel file.The plugin is designed to be user-friendly, offering a seamless experience for both developers and end-users. -->
 
 # Getting Started
 
@@ -51,8 +51,8 @@ module.exports = {
         "message": "Company Name",
         "solution": "Solution",
       }
-    },
-  },
+    }
+  }
 };
 ```
 
@@ -66,8 +66,10 @@ module.exports = {
 
   - **Note :** Currently one level of relation is supported.
 
-- The locale field is for i18 translation plugin. If there is translation for the table you have to make it true.
+- The **locale** field is for i18 translation plugin. If there is translation for the table you have to make it true.
 
   - **Note :** Currently data will be only availabe in 'en'.
+
+- The **label** field map column names to field names
 
 - **You can't extract data from dynamic zone or nested components.**

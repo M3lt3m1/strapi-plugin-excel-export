@@ -2,6 +2,6 @@
 
 module.exports = ({ strapi }) => ({
   getWelcomeMessage() {
-    return 'Welcome to Excel Export';
+    return 'Welcome to Matchbox Export';
   },
 });
