@@ -133,10 +133,13 @@ const HomePage = () => {
     setTableData([]);
   };
 
+  // name is column name, selector is data hash
   const columnRestructure = columns.map((property) => ({
     name: labels ? labels[property] : property?.charAt(0).toUpperCase() + property?.slice(1).replace(/_/g, " "),
     selector: (row) => row[property],
   }));
+
+  console.log(`columnRestructure: %{JSON.stringify(columnRestructure, null, 2)}`);
 
   // Function to format date as "DD-MM-YYYY-HH-mm-ss"
   const formatDate = (date) => {
