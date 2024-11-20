@@ -72,7 +72,7 @@ module.exports = ({ strapi }) => ({
 
     let config = {
       count: count,
-      labels: labels,
+      labels: labelMap,
       columns: headers,
       data: tableData,
     };
