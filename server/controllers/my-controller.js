@@ -70,14 +70,16 @@ module.exports = ({ strapi }) => ({
     // format loaded data
     let tableData = await this.restructureData(response, excel?.config[uid]);
 
-    // Sort dropDownValues alphabetically by label in ascending order
-
-    return {
-      data: tableData,
+    let config = {
       count: count,
-      columns: labels, // headers,
-      labels: labels
+      labels: labels,
+      columns: headers,
+      data: tableData,
     };
+
+    strapi.log.info(`export.downloadExcel: getTableData=${JSON.stringify(config, null, 2).substring(0,250)}...`);
+
+    return (config);
   },
 
   async downloadExcel(ctx) {
@@ -124,6 +126,8 @@ module.exports = ({ strapi }) => ({
           .join(" ");
         headerRestructure.push(formattedHeader);
       });
+
+      strapi.log.info(`export.downloadExcel: excelHeader=${JSON.stringify(headerRestructure, null, 2)`);
 
       // Define dynamic column headers
       worksheet.columns = headers.map((header, index) => ({
@@ -206,6 +210,8 @@ module.exports = ({ strapi }) => ({
           .join(" ");
         headerRestructure.push(formattedHeader);
       });
+
+      strapi.log.info(`export.downloadCSV: excelHeader=${JSON.stringify(headerRestructure, null, 2)`);
 
       // Define dynamic column headers
       worksheet.columns = headers.map((header, index) => ({
