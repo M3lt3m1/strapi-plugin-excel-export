@@ -4,16 +4,15 @@ const excel = strapi.config.get("excel");
 
 module.exports = ({ strapi }) => ({
 
-  // select the collections that are defined into "excel" configuration
+  // select the collections that are defined into the "excel" configuration
   async getDropDownData() {
-    // let excel = strapi.config.get("excel");
     let dropDownValues = [];
-    let array = Object.keys(excel?.config);
+    let configCollections = Object.keys(excel?.config);
 
     // scan all the collections
     strapi?.db?.config?.models?.forEach((element) => {
       if (element?.kind == "collectionType") {
-        array?.forEach((data) => {
+        configCollections?.forEach((data) => {
           if (element?.uid?.startsWith(data)) {
             dropDownValues.push({
               label: element?.info?.displayName,
@@ -33,19 +32,15 @@ module.exports = ({ strapi }) => ({
 
   // extract the data from current collection
   async getTableData(ctx) {
-    // let excel = strapi.config.get("excel");
     let uid = ctx?.query?.uid;
     let limit = ctx?.query?.limit;
     let offset = ctx?.query?.offset;
-    let query = await this.restructureObject(
-      excel?.config[uid],
-      uid,
-      limit,
-      offset
-    );
+    let query = await this.makeQuery(excel?.config[uid], uid, limit, offset);
 
     // query the data from the collection "uid"
     let response = await strapi.db.query(uid).findMany(query);
+
+    strapi.log.info(`export.getTableData: queryData[${uid}]=${JSON.stringify(response, null, 2).substring(0,1000)}...`);
 
     // build the header
     let headers = [
@@ -70,6 +65,8 @@ module.exports = ({ strapi }) => ({
     // format loaded data
     let tableData = await this.restructureData(response, excel?.config[uid]);
 
+    strapi.log.info(`export.getTableData: query[${uid}]=${JSON.stringify(response, null, 2).substring(0,1000)}...`);
+
     let config = {
       count: count,
       labels: labelMap,
@@ -77,14 +74,13 @@ module.exports = ({ strapi }) => ({
       data: tableData,
     };
 
-    strapi.log.info(`export.downloadExcel: getTableData=${JSON.stringify(config, null, 2).substring(0,500)}...`);
+    strapi.log.info(`export.getTableData: output=${JSON.stringify(config, null, 2).substring(0,1000)}...`);
 
     return (config);
   },
 
   async downloadExcel(ctx) {
     try {
-      // let excel = strapi.config.get("excel");
 
       strapi.log.info(`export.downloadExcel: config=${JSON.stringify(excel, null, 2)}`);
 
@@ -92,7 +88,7 @@ module.exports = ({ strapi }) => ({
 
       strapi.log.info(`export.downloadExcel: UID=${uid}`);
 
-      let query = await this.restructureObject(excel?.config[uid], uid);
+      let query = await this.makeQuery(excel?.config[uid], uid);
 
       strapi.log.info(`export.downloadExcel: query=${JSON.stringify(query, null, 2)}`);
 
@@ -165,7 +161,6 @@ module.exports = ({ strapi }) => ({
 
   async downloadCSV(ctx) {
     try {
-      // let excel = strapi.config.get("excel");
 
       strapi.log.info(`export.downloadExcel: config=${JSON.stringify(excel, null, 2)}`);
 
@@ -174,7 +169,7 @@ module.exports = ({ strapi }) => ({
       strapi.log.info(`export.downloadCSV: UID=${uid}`);
 
       // make the query
-      let query = await this.restructureObject(excel?.config[uid], uid);
+      let query = await this.makeQuery(excel?.config[uid], uid);
 
       strapi.log.info(`export.downloadCSV: query=${JSON.stringify(query, null, 2)}`);
 
@@ -249,14 +244,13 @@ module.exports = ({ strapi }) => ({
 
   /**
    * Create the query to get the elements
-   * @param {json} inputObject the base rules
-   * @param {string} uid the table (i.e. api::product.product)
+   * @param {json} collectionCfg the rules for the collection
+   * @param {string} uid collection unique id (i.e. api::product.product)
    * @param {number} limit how many elements get
    * @param {number} offset the first element to get
    * @returns {json} the target rules
    */
-  async restructureObject(inputObject, uid, limit, offset) {
-    // let excel = strapi.config.get("excel");
+  async makeQuery(collectionCfg, uid, limit, offset) {
 
     let where = {};
 
@@ -271,8 +265,8 @@ module.exports = ({ strapi }) => ({
       id: "asc",
     };
 
-    const restructuredObject = {
-      select: inputObject.columns || "*",
+    const query = {
+      select: collectionCfg.columns || "*",
       populate: {},
       where,
       orderBy,
@@ -281,13 +275,14 @@ module.exports = ({ strapi }) => ({
     };
 
     // add any relationship - just one level deep
-    for (const key in inputObject.relation) {
-      restructuredObject.populate[key] = {
-        select: inputObject.relation[key].column,
+    // TODO: make it deeper
+    for (const key in collectionCfg.relation) {
+      query.populate[key] = {
+        select: collectionCfg.relation[key].column,
       };
     }
 
-    return restructuredObject;
+    return query;
   },
 
   /**
