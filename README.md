@@ -33,9 +33,11 @@ module.exports = {
         "city",
         "message",
       ],
-      relation: {
+      relations: {
         solution: {
-          column: ["title"],
+          columns: [
+            "title"
+          ],
         },
       },
       locale: "false",

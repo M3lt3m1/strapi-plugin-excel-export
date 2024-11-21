@@ -47,7 +47,7 @@ module.exports = ({ strapi }) => ({
     // build the header
     let headers = [
       ...excel?.config[uid]?.columns,                 // add field names of the collection
-      ...Object.keys(excel?.config[uid]?.relation),   // add field names from relations of the collection
+      ...Object.keys(excel?.config[uid]?.relations),  // add field names from relations of the collection
     ];
 
     let labelMap = excel?.config[uid]?.labels||{}
@@ -109,7 +109,7 @@ module.exports = ({ strapi }) => ({
       // Extract column headers dynamically from the data
       let headers = [
         ...excel?.config[uid]?.columns,
-        ...Object.keys(excel?.config[uid]?.relation),
+        ...Object.keys(excel?.config[uid]?.relations),
       ];
       let labelMap = excel?.config[uid]?.labels||{}
       let labels = Array.from(headers, (name) => labelMap[name]||name)
@@ -192,7 +192,7 @@ module.exports = ({ strapi }) => ({
       // Extract column headers dynamically from the data
       let headers = [
         ...excel?.config[uid]?.columns,
-        ...Object.keys(excel?.config[uid]?.relation),
+        ...Object.keys(excel?.config[uid]?.relations),
       ];
       let labelMap = excel?.config[uid]?.labels||{}
       let labels = Array.from(headers, (name) => labelMap[name]||name)
@@ -278,9 +278,9 @@ module.exports = ({ strapi }) => ({
 
     // add any relationship - just one level deep
     // TODO: make it deeper
-    for (const key in collectionCfg.relation) {
+    for (const key in collectionCfg.relations) {
       query.populate[key] = {
-        select: collectionCfg.relation[key].column,
+        select: collectionCfg.relations[key].columns,
       };
     }
 
@@ -305,9 +305,9 @@ module.exports = ({ strapi }) => ({
       }
 
       // Restructure relation data based on the specified structure
-      for (const key in objectStructure.relation) {
+      for (const key in objectStructure.relations) {
         if (key in item) {
-          const column = objectStructure.relation[key].column[0];
+          const column = objectStructure.relations[key].columns[0];
           if (item[key] && typeof item[key] === "object") {
             if (Array.isArray(item[key]) && item[key].length > 0) {
               restructuredItem[key] = item[key]
