@@ -37,6 +37,8 @@ module.exports = ({ strapi }) => ({
     let offset = ctx?.query?.offset;
     let query = await this.makeQuery(excel?.config[uid], uid, limit, offset);
 
+    strapi.log.info(`export.getTableData: query[${uid}]=${JSON.stringify(query, null, 2)}`);
+
     // query the data from the collection "uid"
     let response = await strapi.db.query(uid).findMany(query);
 
