@@ -255,10 +255,10 @@ module.exports = ({ strapi }) => ({
   async makeQuery(collectionCfg, uid, limit, offset) {
     /**
      * Build recursively the relations
-     * @param {json} relations
+     * @param {json} rules the rules to use
      * EXAMPLE:
      *
-     * input relations = {
+     * input rules = {
      *   columns: ["pippo","pluto"],
      *   relations: {
      *     prices: {
@@ -291,23 +291,21 @@ module.exports = ({ strapi }) => ({
      *      }
      *    },
      */
-    let makeRelations = (relations) => {
-      let populate = {};
-      console.log(`makeQuery.makeRelations: rules=${JSON.stringify(relations, null, 2)}`);
-      for (const key in relations) {
-        if ( relations[key].columns && relations[key].columns.length ) {
-          populate[key] = {
-            select: relations[key].columns
-          }
-        }
-        // any relation to take in consideration?
-        if ( relations[key].relations && Object.keys(relations[key].relations).length > 0) {
-          populate[key] = populate[key] || {};  // define the populate object if not already defined
-          populate[key].populate = makeRelations(relations[key].relations);
+    let makeRelations = (rules) => {
+      let relation = {};
+      console.log(`makeQuery.makeRelations: rules=${JSON.stringify(rules, null, 2)}`);
+      // any columns to select?
+      if ( rules.columns && rules.columns.length ) {
+        relation.select = {
+          select: rules[key].columns
         }
       }
-      console.log(`makeQuery.makeRelations: populate=${JSON.stringify(populate, null, 2)}`);
-      return populate;
+      // any relation to use?
+      for (const key in rules.relations||[]) {
+        relation.populate[key] = makeRelations(rules.relations[key]); // add a new relation
+      }
+      console.log(`makeQuery.makeRelations: relation=${JSON.stringify(relation, null, 2)}`);
+      return relation;
     };
     let where = {};
 
