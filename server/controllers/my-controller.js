@@ -42,7 +42,7 @@ module.exports = ({ strapi }) => ({
     // query the data from the collection "uid"
     let response = await strapi.db.query(uid).findMany(query);
 
-    strapi.log.info(`export.getTableData: queryData[${uid}]=${JSON.stringify(response, null, 2).substring(0,1000)}...`);
+    strapi.log.info(`export.getTableData: queryData[${uid}]=${JSON.stringify(response, null, 2).substring(0,3000)}...`);
 
     // build the header
     let headers = [
@@ -293,6 +293,7 @@ module.exports = ({ strapi }) => ({
      */
     let makeRelations = (relations) => {
       let populate = {};
+      console.log(`makeQuery.makeRelations: rules=${JSON.stringify(relations, null, 2)}`);
       for (const key in relations) {
         if ( relations[key].columns && relations[key].columns.length ) {
           populate[key] = {
@@ -305,6 +306,7 @@ module.exports = ({ strapi }) => ({
           populate[key].populate = makeRelations(relations[key].relations);
         }
       }
+      console.log(`makeQuery.makeRelations: populate=${JSON.stringify(populate, null, 2)}`);
       return populate;
     };
     let where = {};
