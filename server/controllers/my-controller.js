@@ -294,15 +294,23 @@ module.exports = ({ strapi }) => ({
     let makeRelations = (rules) => {
       let relation = {};
       console.log(`makeQuery.makeRelations: rules=${JSON.stringify(rules, null, 2)}`);
-      // any columns to select?
-      if ( rules.columns && rules.columns.length ) {
-        relation.select = {
-          select: rules.columns
+      try {
+        // any columns to select?
+        if ( rules.columns && rules.columns.length ) {
+          relation.select = {
+            select: rules.columns
+          }
         }
-      }
-      // any relation to use?
-      for (const key in rules.relations||[]) {
-        relation.populate[key] = makeRelations(rules.relations[key]); // add a new relation
+        // any relation to use?
+        for (const key in rules.relations||[]) {
+          if ( rules.relations[key] ) {
+            relation.populate[key] = makeRelations(rules.relations[key]); // add a new relation
+          } else {
+            console.error(`makeQuery.makeRelations: ERROR  cannot get key ${key}`);
+          }
+        }
+      } catch(err) {
+        console.error(`makeQuery.makeRelations: ERROR ${err.toString()}`);
       }
       console.log(`makeQuery.makeRelations: relation=${JSON.stringify(relation, null, 2)}`);
       return relation;
