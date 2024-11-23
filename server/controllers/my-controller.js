@@ -291,9 +291,9 @@ module.exports = ({ strapi }) => ({
      *      }
      *    },
      */
-    let makeRelations = (rules) => {
+    let makeRelations = (rules, owner, level) => {
       let relation = {};
-      console.log(`makeQuery.makeRelations: rules=${JSON.stringify(rules, null, 2)}`);
+      console.log(`makeQuery.makeRelations: ${level}. ${owner} rules=${JSON.stringify(rules, null, 2)}`);
       try {
         // any columns to select?
         if ( rules.columns && rules.columns.length ) {
@@ -304,15 +304,16 @@ module.exports = ({ strapi }) => ({
         // any relation to use?
         for (const key in rules.relations||[]) {
           if ( rules.relations[key] ) {
-            relation.populate[key] = makeRelations(rules.relations[key]); // add a new relation
+            relation.populate = relation.populate || {};
+            relation.populate[key] = makeRelations(rules.relations[key], key, level + 1); // add a new relation
           } else {
-            console.error(`makeQuery.makeRelations: ERROR  cannot get key ${key}`);
+            console.error(`makeQuery.makeRelations: ${owner} ERROR cannot get key ${key}`);
           }
         }
       } catch(err) {
-        console.error(`makeQuery.makeRelations: ERROR ${err.toString()}`);
+        console.error(`makeQuery.makeRelations: ${level}. ${owner} ERROR ${err.toString()}`);
       }
-      console.log(`makeQuery.makeRelations: relation=${JSON.stringify(relation, null, 2)}`);
+      console.log(`makeQuery.makeRelations: ${level}. ${owner} relation=${JSON.stringify(relation, null, 2)}`);
       return relation;
     };
     let where = {};
@@ -341,7 +342,7 @@ module.exports = ({ strapi }) => ({
     for (const key in collectionCfg.relations) {
       // columns or relations defined?
       if ( collectionCfg.relations[key]?.columns.length || Object.keys(collectionCfg.relations[key]?.relations||{}).length > 0){
-        query.populate[key] = makeRelations(collectionCfg.relations[key]);
+        query.populate[key] = makeRelations(collectionCfg.relations[key], key, 1);
       }
     }
 
