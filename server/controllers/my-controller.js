@@ -297,9 +297,7 @@ module.exports = ({ strapi }) => ({
       try {
         // any columns to select?
         if ( rules.columns && rules.columns.length ) {
-          relation.select = {
-            select: rules.columns
-          }
+          relation.select = rules.columns;
         }
         // any relation to use?
         for (const key in rules.relations||[]) {
