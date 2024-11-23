@@ -1,0 +1,45 @@
+{
+    "name": "Mini Borsa Classica Stampata",
+    "brand": "TEMU",
+    "description": "Borsa A Tracolla In Ecopelle, Borsa Vintage Con Patta E Manico Superiore Per Donna",
+    "code": "aJG659d1aa3X6M83",
+    "location": null,
+    "weight": "400GR",
+    "size": "10cm x 30cm x 5cm",
+    "id": 2,
+    "prices": [
+        {
+            "unit_cost": "€1",
+            "id": 1,
+            "supplier": {
+                "name": "Akasha Services"
+            }
+        },
+        {
+            "unit_cost": "€120",
+            "id": 3,
+            "supplier": {
+                "name": "Akasha Services"
+            }
+        }
+    ],
+    "category": {
+        "name": "Bags"
+    },
+    "type": {
+        "name": "Beach bags"
+    },
+    "events": [
+        {
+            "name": "IEAE Shenzhen Expo"
+        }
+    ],
+    "certifications": [
+        {
+            "name": "FCC"
+        },
+        {
+            "name": "CE"
+        }
+    ]
+}
