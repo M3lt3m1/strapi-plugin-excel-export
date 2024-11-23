@@ -293,7 +293,7 @@ module.exports = ({ strapi }) => ({
      */
     let makeRelations = (rules, owner, level) => {
       let relation = {};
-      console.log(`makeQuery.makeRelations: ${level}. ${owner} rules=${JSON.stringify(rules, null, 2)}`);
+      // console.log(`makeQuery.makeRelations: ${level}. ${owner} rules=${JSON.stringify(rules, null, 2)}`);
       try {
         // any columns to select?
         if ( rules.columns && rules.columns.length ) {
@@ -311,7 +311,7 @@ module.exports = ({ strapi }) => ({
       } catch(err) {
         console.error(`makeQuery.makeRelations: ${level}. ${owner} ERROR ${err.toString()}`);
       }
-      console.log(`makeQuery.makeRelations: ${level}. ${owner} relation=${JSON.stringify(relation, null, 2)}`);
+      // console.log(`makeQuery.makeRelations: ${level}. ${owner} relation=${JSON.stringify(relation, null, 2)}`);
       return relation;
     };
     let where = {};
