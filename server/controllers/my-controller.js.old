@@ -65,7 +65,7 @@ module.exports = ({ strapi }) => ({
     let count = await strapi.db.query(uid).count(where);
 
     // format loaded data
-    let tableData = await this.flattenData(response, excel?.config[uid]);
+    let tableData = await this.restructureData(response, excel?.config[uid]);
 
     strapi.log.info(`export.getTableData: query[${uid}]=${JSON.stringify(response, null, 2).substring(0,1000)}...`);
 
@@ -98,7 +98,7 @@ module.exports = ({ strapi }) => ({
 
       strapi.log.info(`export.downloadExcel: response=${JSON.stringify(response, null, 2).substring(0,500)}...`);
 
-      let excelData = await this.flattenData(response, excel?.config[uid]);
+      let excelData = await this.restructureData(response, excel?.config[uid]);
 
       strapi.log.info(`export.downloadExcel: excelData=${JSON.stringify(excelData, null, 2).substring(0,500)}...`);
 
@@ -181,7 +181,7 @@ module.exports = ({ strapi }) => ({
       strapi.log.info(`export.downloadCSV: response=${JSON.stringify(response, null, 2).substring(0,500)}...`);
 
       // format the data
-      let excelData = await this.flattenData(response, excel?.config[uid]);
+      let excelData = await this.restructureData(response, excel?.config[uid]);
 
       strapi.log.info(`export.downloadCSV: excelData=${JSON.stringify(excelData, null, 2).substring(0,500)}...`);
 
@@ -254,11 +254,7 @@ module.exports = ({ strapi }) => ({
    */
   async makeQuery(collectionCfg, uid, limit, offset) {
     /**
-     * Build recursively the relations
-     * @param {json} relations
-     * EXAMPLE:
-     *
-     * input relations = {
+     * relations = {
      *   columns: ["pippo","pluto"],
      *   relations: {
      *     prices: {
@@ -271,25 +267,7 @@ module.exports = ({ strapi }) => ({
      *     }
      *   }
      * },
-     *
-     * expected output = {
-     *  "select": [
-     *    "pippo",
-     *    "pluto",
-     *  ],
-     *  "populate": {
-     *    "prices": {
-     *      "select": [
-     *        "unit_cost"
-     *      ],
-     *      "populate": {
-     *         "supplier": {
-     *            "select": [
-     *               "name"
-     *            ],
-     *         }
-     *      }
-     *    },
+     * @param {*} relations
      */
     let makeRelations = (relations) => {
       let populate = {};
@@ -300,7 +278,7 @@ module.exports = ({ strapi }) => ({
           }
         }
         // any relation to take in consideration?
-        if ( relations[key].relations && Object.keys(relations[key].relations).length > 0) {
+        if ( relations[key].relations && relations[key].relations.length ) {
           populate[key] = populate[key] || {};  // define the populate object if not already defined
           populate[key].populate = makeRelations(relations[key].relations);
         }
@@ -329,11 +307,21 @@ module.exports = ({ strapi }) => ({
       offset: offset,
     };
 
-    // add any relationship - any level deep
+    // add any relationship - just one level deep
+    // TODO: make it deeper
     for (const key in collectionCfg.relations) {
-      // columns or relations defined?
-      if ( collectionCfg.relations[key]?.columns.length || Object.keys(collectionCfg.relations[key]?.relations||{}).length > 0){
-        query.populate[key] = makeRelations(collectionCfg.relations[key]);
+      // columns defined?
+      if ( collectionCfg.relations[key].columns && collectionCfg.relations[key].columns.length ) {
+          query.populate[key] = {
+            select: collectionCfg.relations[key].columns,
+          };
+      }
+      // second level relations defined?
+      if ( collectionCfg.relations[key].relations && Object.keys(collectionCfg.relations[key].relations).length > 0)  {
+        query.populate[key].populate = {}
+        for (const key2 of collectionCfg.relations[key].relations) {
+          query.populate[key].populate[key2] = collectionCfg.relations[key].relations[key2].columns
+        }
       }
     }
 
@@ -341,42 +329,42 @@ module.exports = ({ strapi }) => ({
   },
 
   /**
-   * Flatten each element of the provided collection
-   * @param {json} data the elements to flatten
+   * Format an element
+   * @param {json} data the element to format
    * @param {json} objectStructure the rules
    * @returns {json} the formatted element
    */
-  async flattenData(data, objectStructure) {
+  async restructureData(data, objectStructure) {
     return data.map((item) => {
-      const flattenItem = {};
+      const restructuredItem = {};
 
-      // flatten main data based on columns
+      // Restructure main data based on columns
       for (const key of objectStructure.columns) {
         if (key in item) {
-          flattenItem[key] = item[key];
+          restructuredItem[key] = item[key];
         }
       }
 
-      // flatten relations data based on the specified structure - shall be recursive
+      // Restructure relation data based on the specified structure
       for (const key in objectStructure.relations) {
         if (key in item) {
           const column = objectStructure.relations[key].columns[0];
           if (item[key] && typeof item[key] === "object") {
             if (Array.isArray(item[key]) && item[key].length > 0) {
-              flattenItem[key] = item[key]
+              restructuredItem[key] = item[key]
                 .map((obj) => obj[column])
-                .join(", ");
+                .join(" ");
             } else {
-              flattenItem[key] = item[key][column];
+              restructuredItem[key] = item[key][column];
             }
           } else {
             // Handle the case where item[key] is not an object
-            flattenItem[key] = null; // Or handle it as needed
+            restructuredItem[key] = null; // Or handle it as needed
           }
         }
       }
 
-      return flattenItem;
+      return restructuredItem;
     });
   },
 });
