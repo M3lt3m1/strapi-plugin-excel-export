@@ -129,10 +129,10 @@ module.exports = ({ strapi }) => ({
     // find how many occurrences has been found with current query
     let count = await strapi.db.query(uid).count(where);
 
-    // format loaded data (i.e. remove unwanted fields, flatten remaining data)
+    // format loaded data
     let tableData = await this.flattenData(response, excel?.config[uid]);
 
-    strapi.log.info(`export.getTableData: ${count} filtered records[${uid}]=${JSON.stringify(tableData, null, 2).substring(0,1000)}...`);
+    strapi.log.info(`export.getTableData: query[${uid}]=${JSON.stringify(response, null, 2).substring(0,1000)}...`);
 
     let config = {
       count: count,
@@ -426,7 +426,7 @@ module.exports = ({ strapi }) => ({
      * @param {number} level
      * @returns {json} filtered item
      */
-    const filterIem = (item, rules, level=1) => {
+    const filterIem = (item, rules, level) => {
       let outItem = {};
       if ( !item ) return undefined;
       for( let column of rules.columns||[]) {
@@ -443,16 +443,76 @@ module.exports = ({ strapi }) => ({
       }
       return outItem;
     };
+    /**
+     * Flatten an item using rules
+     * @param {json} item the item to flatten
+     * @param {json} rules the rules to apply
+     * @returns {json} the flattened item
+     */
+    const flattenItem = (item, rules, level) => {
+      let flattenedItem = {};
+      console.log(`flattenData.flattenItem: ${level}. IN ITEM=${JSON.stringify(item,null,2)}\nRULES=${JSON.stringify(rules,null,2)}\n`);
+      for( let column of rules.columns||[]) {
+        if ( !column || !column.length ) {
+          continue;
+        }
+        const cc = column.split(':'); // the target name might be different from the column name
+        let inColumn  = column;       // the field name within the input item
+        let outColumn = column;       // the field name within the output item
+        if ( cc.length > 1 ) {
+          inColumn = cc[0];
+          outColumn = cc[1];
+        }
+        // avoid overwriting existing columns
+        for( let i = 1; i < 10; i++ ) {
+          if ( flattenedItem[outColumn] ) {
+            outColumn = `${outColumn}_${i}`
+          } else {
+            break;
+          }
+        }
+        // the related item must be an object
+        if (item && typeof item === "object") {
+          // did we get an array of elements?
+          if (Array.isArray(item) && item.length > 0) {
+            flattenedItem[outColumn] = item.map((obj) => obj[inColumn]).join(", ");  // join elements in the array
+          } else {
+            flattenedItem[outColumn] = item[inColumn]; // get the element as is
+          }
+        } else {
+          // Handle the case where item is not an object
+          flattenedItem[outColumn] = null; // Or handle it as needed
+        }
+      }
+
+      for ( let key in rules.relations||{} ) {
+        // the key is the name of current item property and must exist
+        if (key in item) {
+          // extract field from the sub-item and merge them
+          let flatItem  = flattenItem(item[key],rules.relations[key], level+1);
+          // merge new item with current item avoiding to override fields, i.e. add _<index> to duplicated fields
+          for ( let field of flatItem ) {
+            let fieldName = field;
+            // avoid overwriting existing columns in target item
+            for ( let i = 1; i < 10; i++ ) {
+              if ( !flattenedItem[fieldName] ) {
+                break;
+              }
+              fieldName = `${fieldName}_${i}`;
+            }
+            flattenedItem[fieldName] = flatItem[field];
+          }
+        }
+      }
+
+      console.log(`flattenData.flattenItem: ${level}. OUT ITEM=${JSON.stringify(flattenedItem,null,2)}\n`)
+      return flattenedItem;
+    };
 
     return data.map((item) => {
-      console.log(`flattenData: INPUT ITEM ${JSON.stringify(item, null, 2)}\n`);
-      item = filterIem(item, structureRules, 1);
-      console.log(`flattenData: FILTERED ITEM ${JSON.stringify(item, null, 2)}\n`);
-      item = flatten(item);
-      console.log(`flattenData: FLATTENED ITEM ${JSON.stringify(item, null, 2)}\n`);
-      return item;
+      const flattenedItem = flattenItem(item, structureRules);
+      return flattenedItem;
     });
-
   }
 
 });

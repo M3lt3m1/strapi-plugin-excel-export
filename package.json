@@ -1,7 +1,7 @@
 {
   "name": "strapi-plugin-excel-export-2024",
-  "version": "1.0.7",
-  "description": "A strapi plugin used which can be used to download data in xlsx format",
+  "version": "1.0.8",
+  "description": "A strapi plugin used which can be used to download data in Excel xlsx format",
   "strapi": {
     "name": "excel-export",
     "description": "A strapi plugin used which can be used to download data in xlsx format",

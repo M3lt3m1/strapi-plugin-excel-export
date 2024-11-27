@@ -310,18 +310,9 @@ module.exports = ({ strapi }) => ({
     // add any relationship - just one level deep
     // TODO: make it deeper
     for (const key in collectionCfg.relations) {
-      // columns defined?
-      if ( collectionCfg.relations[key].columns && collectionCfg.relations[key].columns.length ) {
-          query.populate[key] = {
-            select: collectionCfg.relations[key].columns,
-          };
-      }
-      // second level relations defined?
-      if ( collectionCfg.relations[key].relations && Object.keys(collectionCfg.relations[key].relations).length > 0)  {
-        query.populate[key].populate = {}
-        for (const key2 of collectionCfg.relations[key].relations) {
-          query.populate[key].populate[key2] = collectionCfg.relations[key].relations[key2].columns
-        }
+      // columns or relations defined?
+      if ( collectionCfg.relations[key].columns || collectionCfg.relations[key].relations) {
+        query.populate[key] = makeRelations(collectionCfg.relations[key])
       }
     }
 
