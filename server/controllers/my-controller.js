@@ -449,6 +449,9 @@ module.exports = ({ strapi }) => ({
                   outItem[key].push(ii);
                 }
             }
+            if ( rules.mode && rules.mode === 'group' ) {
+              outItem[key] = outItem[key].join(rules.separator||', ')
+            }
           } else if ( typeof newItem === 'object') {
             // strapi.log.info(`HANDLE ${key} FILTER ${(newItem.columns||[]).length} columns, ${Object.keys(subRules.relations||{}).length} relations\n`);
             outItem[key] = filterItem(newItem, subRules, level + 1);
@@ -461,6 +464,13 @@ module.exports = ({ strapi }) => ({
         }
       }
       // strapi.log.info(`flattenData.filterItem: LEVEL ${level} OUTPUT=${JSON.stringify(outItem, null, 2)}\n`);
+      if ( rules.mode && rules.mode === 'group' ) {
+        let target = '';
+        for ( let key in outItem ) {
+          target += outItem[key]+(rules.separator||' ');
+        }
+        return target.trim();
+      }
       return outItem;
     };
 

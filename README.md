@@ -35,6 +35,7 @@ module.exports = {
       ],
       relations: {
         products: {
+          mode: "group",
           columns: [
             "name"
           ],
@@ -68,6 +69,7 @@ module.exports = {
 - The tables **uid** (api::contact-form.contact-form) need to be given following by its columns required
   - The columns has to be exactly like in the **schema**.
   - The name of the columns must be unique
+  - mode: indicates if subfields must be grouped (group) or splitted (split)
 - Relational fields need to be specified in the relation. For example consider the relation as _products_ and the column wanted from that relation is _name_.
 
   - Even if there is no relation needed please keep the relation field empty.
