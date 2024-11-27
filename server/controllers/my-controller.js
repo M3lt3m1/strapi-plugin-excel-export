@@ -426,27 +426,47 @@ module.exports = ({ strapi }) => ({
      * @param {number} level
      * @returns {json} filtered item
      */
-    const filterIem = (item, rules, level=1) => {
+    const filterItem = (item, rules, level=1) => {
       let outItem = {};
       if ( !item ) return undefined;
+      // strapi.log.info(`flattenData.filterItem: LEVEL ${level}, ${(rules.columns||[]).length} COLUMNS, ${Object.keys(rules.relations||{}).length} RELATIONS, INPUT=${JSON.stringify(item, null, 2)}\nRULES=${JSON.stringify(rules, null, 2)}\n`);
       for( let column of rules.columns||[]) {
-        outItem[column] = item[column];
-      }
-      for ( let key in rules.relations||{} ) {
-        if ( data[key] ) {
-          if ( typeof data[key] === 'object') {
-            outItem[key] = filterItem(data[key], rules.relations[key], level + 1);
-          } else {
-            outItem[key] = data[key];
-          }
+        if ( item[column] ) {
+          outItem[column] = item[column];
         }
       }
+      for ( let key in rules.relations||{} ) {
+        let subRules = rules.relations[key];
+        let newItem  = item[key];
+        if ( subRules && subRules ) {
+          // strapi.log.info(`HANDLE ${key} ${typeof newItem}\n`);
+          if( Array.isArray( newItem ) ) {
+            outItem[key] = [];
+            // strapi.log.info(`HANDLE ${key} array with ${newItem.length} columns items\n`);
+            for ( let data of newItem ) {
+                let ii = filterItem(data, subRules, level + 1);
+                if ( ii ) {
+                  outItem[key].push(ii);
+                }
+            }
+          } else if ( typeof newItem === 'object') {
+            // strapi.log.info(`HANDLE ${key} FILTER ${(newItem.columns||[]).length} columns, ${Object.keys(subRules.relations||{}).length} relations\n`);
+            outItem[key] = filterItem(newItem, subRules, level + 1);
+          } else {
+            // strapi.log.info(`HANDLE ${key} COPY ${newItem}`);
+            outItem[key] = newItem;
+          }
+        } else {
+          // strapi.log.info(`SKIP ${key} ${newItem?'':'NO DATA'} ${subRules?'':'NO RULES'}\n`);
+        }
+      }
+      // strapi.log.info(`flattenData.filterItem: LEVEL ${level} OUTPUT=${JSON.stringify(outItem, null, 2)}\n`);
       return outItem;
     };
 
     return data.map((item) => {
       console.log(`flattenData: INPUT ITEM ${JSON.stringify(item, null, 2)}\n`);
-      item = filterIem(item, structureRules, 1);
+      item = filterItem(item, structureRules, 1);
       console.log(`flattenData: FILTERED ITEM ${JSON.stringify(item, null, 2)}\n`);
       item = flatten(item);
       console.log(`flattenData: FLATTENED ITEM ${JSON.stringify(item, null, 2)}\n`);
