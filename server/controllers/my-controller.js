@@ -43,16 +43,33 @@ function unFlatten(data) {
  * {a:[{b:["c","d"]}]} => {"a[0].b[0]":"c","a[0].b[1]":"d"}
  * [1,[2,[3,4],5],6] => {"[0]":1,"[1].[0]":2,"[1].[1].[0]":3,"[1].[1].[1]":4,"[1].[2]":5,"[2]":6}
  */
-function flatten(data) {
+function flatten(data,groupFlag=false) {
     var result = {};
     function recurse (cur, prop) {
         if (Object(cur) !== cur) {
             result[prop] = cur;
         } else if (Array.isArray(cur)) {
-            for(var i=0, l=cur.length; i<l; i++)
-              recurse(cur[i], prop ? prop+"."+i : ""+i);
-            if (l == 0)
+          if ( cur.length ) {
+            if (groupFlag ) {
+              result[prop] = Array.from(cur, el => {
+                if ( typeof el === 'object') {
+                  let text = '';
+                  for ( let kk in el ) {
+                    if( el[kk] !== 'object' ) {
+                      text += '' + el[kk];
+                    }
+                  }
+                  return text;
+                }
+                return el;
+              }).join(', ')
+            } else {
+              for(var i=0, l=cur.length; i<l; i++)
+                recurse(cur[i], prop ? prop+"."+i : ""+i, groupFlag);
+              if (l == 0)
                 result[prop] = [];
+            }
+          }
         } else {
             var isEmpty = true;
             for (var p in cur) {
@@ -114,6 +131,9 @@ module.exports = ({ strapi }) => ({
       ...excel?.config[uid]?.columns,                 // add field names of the collection
       ...Object.keys(excel?.config[uid]?.relations),  // add field names from relations of the collection
     ];
+
+    // the name of the columns after flatteing changes to the name of the labels
+    headers = Object.keys(excel?.config[uid]?.labels||{});
 
     let labelMap = excel?.config[uid]?.labels||{}
     let labels = Array.from(headers, (name) => labelMap[name]||name)
@@ -426,10 +446,10 @@ module.exports = ({ strapi }) => ({
      * @param {number} level
      * @returns {json} filtered item
      */
-    const filterItem = (item, rules, level=1) => {
+    const filterItem = (section, item, rules, level=1) => {
       let outItem = {};
       if ( !item ) return undefined;
-      // strapi.log.info(`flattenData.filterItem: LEVEL ${level}, ${(rules.columns||[]).length} COLUMNS, ${Object.keys(rules.relations||{}).length} RELATIONS, INPUT=${JSON.stringify(item, null, 2)}\nRULES=${JSON.stringify(rules, null, 2)}\n`);
+      strapi.log.info(`flattenData.filterItem: ${section} LEVEL ${level}${rules.mode?' '+rules.mode:''}, ${(rules.columns||[]).length} COLUMNS, ${Object.keys(rules.relations||{}).length} RELATIONS, INPUT=${JSON.stringify(item, null, 2)}\nRULES=${JSON.stringify(rules, null, 2)}\n`);
       for( let column of rules.columns||[]) {
         if ( item[column] ) {
           outItem[column] = item[column];
@@ -444,7 +464,7 @@ module.exports = ({ strapi }) => ({
             outItem[key] = [];
             // strapi.log.info(`HANDLE ${key} array with ${newItem.length} columns items\n`);
             for ( let data of newItem ) {
-                let ii = filterItem(data, subRules, level + 1);
+                let ii = filterItem(key, data, subRules, level + 1);
                 if ( ii ) {
                   outItem[key].push(ii);
                 }
@@ -454,7 +474,7 @@ module.exports = ({ strapi }) => ({
             }
           } else if ( typeof newItem === 'object') {
             // strapi.log.info(`HANDLE ${key} FILTER ${(newItem.columns||[]).length} columns, ${Object.keys(subRules.relations||{}).length} relations\n`);
-            outItem[key] = filterItem(newItem, subRules, level + 1);
+            outItem[key] = filterItem(key, newItem, subRules, level + 1);
           } else {
             // strapi.log.info(`HANDLE ${key} COPY ${newItem}`);
             outItem[key] = newItem;
@@ -463,22 +483,31 @@ module.exports = ({ strapi }) => ({
           // strapi.log.info(`SKIP ${key} ${newItem?'':'NO DATA'} ${subRules?'':'NO RULES'}\n`);
         }
       }
+
       // strapi.log.info(`flattenData.filterItem: LEVEL ${level} OUTPUT=${JSON.stringify(outItem, null, 2)}\n`);
       if ( rules.mode && rules.mode === 'group' ) {
         let target = '';
         for ( let key in outItem ) {
-          target += outItem[key]+(rules.separator||' ');
+          if ( typeof outItem[key] === 'object') {
+            for ( let key2 in outItem[key] ) {
+              target += outItem[key][key2]+(rules.separator||' '); // make it recursive
+            }
+          } else {
+            target += outItem[key]+(rules.separator||' ');
+          }
         }
-        return target.trim();
+        outItem = target.trim();
       }
+
+      strapi.log.info(`flattenData.filterItem: LEVEL ${level}, ${(rules.columns||[]).length} COLUMNS, ${Object.keys(rules.relations||{}).length} RELATIONS, OUTPUT=${JSON.stringify(outItem, null, 2)}\n`);
       return outItem;
     };
 
     return data.map((item) => {
       console.log(`flattenData: INPUT ITEM ${JSON.stringify(item, null, 2)}\n`);
-      item = filterItem(item, structureRules, 1);
+      item = filterItem('root', item, structureRules, 1);
       console.log(`flattenData: FILTERED ITEM ${JSON.stringify(item, null, 2)}\n`);
-      item = flatten(item);
+      item = flatten(item, true);
       console.log(`flattenData: FLATTENED ITEM ${JSON.stringify(item, null, 2)}\n`);
       return item;
     });
