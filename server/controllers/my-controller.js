@@ -119,12 +119,12 @@ module.exports = ({ strapi }) => ({
     let offset = ctx?.query?.offset;
     let query = await this.makeQuery(excel?.config[uid], uid, limit, offset);
 
-    strapi.log.info(`export.getTableData: query[${uid}]=${JSON.stringify(query, null, 2)}`);
+    // strapi.log.info(`export.getTableData: query[${uid}]=${JSON.stringify(query, null, 2)}`);
 
     // query the data from the collection "uid"
     let response = await strapi.db.query(uid).findMany(query);
 
-    strapi.log.info(`export.getTableData: queryData[${uid}]=${JSON.stringify(response, null, 2).substring(0,3000)}...`);
+    // strapi.log.info(`export.getTableData: queryData[${uid}]=${JSON.stringify(response, null, 2).substring(0,3000)}...`);
 
     // build the header
     let headers = [
@@ -132,7 +132,7 @@ module.exports = ({ strapi }) => ({
       ...Object.keys(excel?.config[uid]?.relations),  // add field names from relations of the collection
     ];
 
-    // the name of the columns after flatteing changes to the name of the labels
+    // the name of the columns after flattening changes to the name of the labels
     headers = Object.keys(excel?.config[uid]?.labels||{});
 
     let labelMap = excel?.config[uid]?.labels||{}
@@ -152,7 +152,7 @@ module.exports = ({ strapi }) => ({
     // format loaded data (i.e. remove unwanted fields, flatten remaining data)
     let tableData = await this.flattenData(response, excel?.config[uid]);
 
-    strapi.log.info(`export.getTableData: ${count} filtered records[${uid}]=${JSON.stringify(tableData, null, 2).substring(0,1000)}...`);
+    // strapi.log.info(`export.getTableData: ${count} filtered records[${uid}]=${JSON.stringify(tableData, null, 2).substring(0,1000)}...`);
 
     let config = {
       count: count,
@@ -161,7 +161,7 @@ module.exports = ({ strapi }) => ({
       data: tableData,
     };
 
-    strapi.log.info(`export.getTableData: output=${JSON.stringify(config, null, 2).substring(0,1000)}...`);
+    // strapi.log.info(`export.getTableData: output=${JSON.stringify(config, null, 2).substring(0,1000)}...`);
 
     return (config);
   },
@@ -169,23 +169,23 @@ module.exports = ({ strapi }) => ({
   async downloadExcel(ctx) {
     try {
 
-      strapi.log.info(`export.downloadExcel: config=${JSON.stringify(excel, null, 2)}`);
+      // strapi.log.info(`export.downloadExcel: config=${JSON.stringify(excel, null, 2)}`);
 
       let uid = ctx?.query?.uid;
 
-      strapi.log.info(`export.downloadExcel: UID=${uid}`);
+      // strapi.log.info(`export.downloadExcel: UID=${uid}`);
 
       let query = await this.makeQuery(excel?.config[uid], uid);
 
-      strapi.log.info(`export.downloadExcel: query=${JSON.stringify(query, null, 2)}`);
+      // strapi.log.info(`export.downloadExcel: query=${JSON.stringify(query, null, 2)}`);
 
       let response = await strapi.db.query(uid).findMany(query);
 
-      strapi.log.info(`export.downloadExcel: response=${JSON.stringify(response, null, 2).substring(0,500)}...`);
+      // strapi.log.info(`export.downloadExcel: response=${JSON.stringify(response, null, 2).substring(0,500)}...`);
 
       let excelData = await this.flattenData(response, excel?.config[uid]);
 
-      strapi.log.info(`export.downloadExcel: excelData=${JSON.stringify(excelData, null, 2).substring(0,500)}...`);
+      // strapi.log.info(`export.downloadExcel: excelData=${JSON.stringify(excelData, null, 2).substring(0,500)}...`);
 
       // Create a new workbook and add a worksheet
       const workbook = new ExcelJS.Workbook();
@@ -196,6 +196,10 @@ module.exports = ({ strapi }) => ({
         ...excel?.config[uid]?.columns,
         ...Object.keys(excel?.config[uid]?.relations),
       ];
+
+      // the name of the columns after flattening changes to the name of the labels
+      headers = Object.keys(excel?.config[uid]?.labels||{});
+
       let labelMap = excel?.config[uid]?.labels||{}
       let labels = Array.from(headers, (name) => labelMap[name]||name)
 
@@ -210,7 +214,7 @@ module.exports = ({ strapi }) => ({
         headerRestructure.push(formattedHeader);
       });
 
-      strapi.log.info(`export.downloadExcel: excelHeader=${JSON.stringify(headerRestructure, null, 2)}`);
+      // strapi.log.info(`export.downloadExcel: excelHeader=${JSON.stringify(headerRestructure, null, 2)}`);
 
       // Define dynamic column headers
       worksheet.columns = headers.map((header, index) => ({
@@ -242,7 +246,7 @@ module.exports = ({ strapi }) => ({
 
       return buffer;
     } catch (error) {
-      console.error("export.downloadExcelError writing buffer:", error);
+      strapi.log.error("export.downloadExcelError writing buffer:", error);
     }
   },
 
@@ -279,6 +283,10 @@ module.exports = ({ strapi }) => ({
         ...excel?.config[uid]?.columns,
         ...Object.keys(excel?.config[uid]?.relations),
       ];
+
+      // the name of the columns after flattening changes to the name of the labels
+      headers = Object.keys(excel?.config[uid]?.labels||{});
+
       let labelMap = excel?.config[uid]?.labels||{}
       let labels = Array.from(headers, (name) => labelMap[name]||name)
 
@@ -325,7 +333,7 @@ module.exports = ({ strapi }) => ({
 
       return buffer;
     } catch (error) {
-      console.error("export.downloadCSV: error writing buffer:", error);
+      strapi.log.error("export.downloadCSV: error writing buffer:", error);
     }
   },
 
@@ -378,7 +386,7 @@ module.exports = ({ strapi }) => ({
      */
     let makeRelations = (rules, owner, level) => {
       let relation = {};
-      // console.log(`makeQuery.makeRelations: ${level}. ${owner} rules=${JSON.stringify(rules, null, 2)}`);
+      // strapi.log.info(`makeQuery.makeRelations: ${level}. ${owner} rules=${JSON.stringify(rules, null, 2)}`);
       try {
         // any columns to select?
         if ( rules.columns && rules.columns.length ) {
@@ -390,13 +398,13 @@ module.exports = ({ strapi }) => ({
             relation.populate = relation.populate || {};
             relation.populate[key] = makeRelations(rules.relations[key], key, level + 1); // add a new relation
           } else {
-            console.error(`makeQuery.makeRelations: ${owner} ERROR cannot get key ${key}`);
+            strapi.log.error(`makeQuery.makeRelations: ${owner} ERROR cannot get key ${key}`);
           }
         }
       } catch(err) {
-        console.error(`makeQuery.makeRelations: ${level}. ${owner} ERROR ${err.toString()}`);
+        strapi.log.error(`makeQuery.makeRelations: ${level}. ${owner} ERROR ${err.toString()}`);
       }
-      // console.log(`makeQuery.makeRelations: ${level}. ${owner} relation=${JSON.stringify(relation, null, 2)}`);
+      // strapi.log.info(`makeQuery.makeRelations: ${level}. ${owner} relation=${JSON.stringify(relation, null, 2)}`);
       return relation;
     };
     let where = {};
@@ -449,7 +457,7 @@ module.exports = ({ strapi }) => ({
     const filterItem = (section, item, rules, level=1) => {
       let outItem = {};
       if ( !item ) return undefined;
-      strapi.log.info(`flattenData.filterItem: ${section} LEVEL ${level}${rules.mode?' '+rules.mode:''}, ${(rules.columns||[]).length} COLUMNS, ${Object.keys(rules.relations||{}).length} RELATIONS, INPUT=${JSON.stringify(item, null, 2)}\nRULES=${JSON.stringify(rules, null, 2)}\n`);
+      // strapi.log.info(`flattenData.filterItem: ${section} LEVEL ${level}${rules.mode?' '+rules.mode:''}, ${(rules.columns||[]).length} COLUMNS, ${Object.keys(rules.relations||{}).length} RELATIONS, INPUT=${JSON.stringify(item, null, 2)}\nRULES=${JSON.stringify(rules, null, 2)}\n`);
       for( let column of rules.columns||[]) {
         if ( item[column] ) {
           outItem[column] = item[column];
@@ -499,16 +507,16 @@ module.exports = ({ strapi }) => ({
         outItem = target.trim();
       }
 
-      strapi.log.info(`flattenData.filterItem: LEVEL ${level}, ${(rules.columns||[]).length} COLUMNS, ${Object.keys(rules.relations||{}).length} RELATIONS, OUTPUT=${JSON.stringify(outItem, null, 2)}\n`);
+      // strapi.log.info(`flattenData.filterItem: LEVEL ${level}, ${(rules.columns||[]).length} COLUMNS, ${Object.keys(rules.relations||{}).length} RELATIONS, OUTPUT=${JSON.stringify(outItem, null, 2)}\n`);
       return outItem;
     };
 
     return data.map((item) => {
-      console.log(`flattenData: INPUT ITEM ${JSON.stringify(item, null, 2)}\n`);
+      // strapi.log.info(`flattenData: INPUT ITEM ${JSON.stringify(item, null, 2)}\n`);
       item = filterItem('root', item, structureRules, 1);
-      console.log(`flattenData: FILTERED ITEM ${JSON.stringify(item, null, 2)}\n`);
+      // strapi.log.info(`flattenData: FILTERED ITEM ${JSON.stringify(item, null, 2)}\n`);
       item = flatten(item, true);
-      console.log(`flattenData: FLATTENED ITEM ${JSON.stringify(item, null, 2)}\n`);
+      // strapi.log.info(`flattenData: FLATTENED ITEM ${JSON.stringify(item, null, 2)}\n`);
       return item;
     });
 
