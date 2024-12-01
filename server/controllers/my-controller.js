@@ -84,17 +84,24 @@ function flatten(data,groupFlag=false) {
     return result;
 }
 
+/**
+ *
+ * @param {json} jsonData
+ * @param {json} _headers
+ * @param {string} separator
+ * @returns {string}
+ */
 function jsonToCsv(jsonData=[], _headers=null, separator='\t') {
   const array = typeof jsonData !== 'object' ? JSON.parse(jsonData) : jsonData;
 
   const csvRows = [];
   
   const headers = _headers || Object.keys(array[0]);
-  csvRows.push(headers.join(','));
+  csvRows.push(headers.join(separator));
 
   for (const row of array) {
       const values = headers.map(header => {
-          let escaped = ('' + row[header]).replace(/"/g, '\\"');  // Escape delle virgolette
+          let escaped = ('' + (row[header]||'')).replace(/"/g, '\\"');  // Escape delle virgolette
           escaped = escaped.replace(/[\t\r\n]/g, "");;             // rimuove cr lf tab
           return escaped.includes(separator) || escaped.includes('"') || escaped.includes('\n') ? `"${escaped}"` : escaped;
       });
@@ -242,8 +249,6 @@ module.exports = ({ strapi }) => ({
         key: header,
         width: 20,
       }));
-
-      // Define the dropdown list options for the Gender column
 
       // Add data to the worksheet
       excelData?.forEach((row) => {
