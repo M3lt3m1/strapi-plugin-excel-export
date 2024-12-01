@@ -17,12 +17,17 @@ import {
 const HomePage = () => {
   const baseUrl = process.env.STRAPI_ADMIN_BACKEND_URL;
 
+  // which collection to export
   const [dropDownData, setDropDownData] = useState([]);
+  const [selectedValue, setSelectedValue] = useState(null);
+
+  // which export format to use
+  const [exportFormats, setExportFormats] = useState([{label:'cvs', value:'csv'},{label:'xlsx',value:'xlsx'}]);   // which format to use
+  const [selectedFormat, setSelectedFormat] = useState('cvs');
 
   const [labels, setLabels] = useState([]);
   const [columns, setColumns] = useState([]);
   const [tableData, setTableData] = useState([]);
-  const [selectedValue, setSelectedValue] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSuccessMessage, setIsSuccessMessage] = useState(false);
   const [fileName, setFileName] = useState("");
@@ -55,8 +60,30 @@ const HomePage = () => {
     }
   };
 
+  //data table pagination
+  const handleOutputFormatChange = async (value) => {
+    strapi.log.info(`handleOutputFormatChange: set ${value}`);
+    setSelectedFormat(value); // Use the callback form to ensure state is updated
+  };
+
+  /**
+   * Run the download process
+   */
+  const handleDownload = async () => {
+    if ( selectedFormat === 'xslx' ) {
+      await handleDownloadExcel();
+    }
+    await handleDownloadCSV();
+  }
+
+  /**
+   * Download data in Excel format
+   */
   const handleDownloadExcel = async () => {
     try {
+      let ff = selectedValue.split('.');
+      let name = ff[ff.length - 1];
+      strapi.log.info(`handleDownloadExcel: RUN ${selectedValue} => ${name}`);
       const response = await axios.get(`${baseUrl}/excel-export/download/excel`,
         {
           responseType: "arraybuffer",
@@ -70,14 +97,14 @@ const HomePage = () => {
       if (response.data) {
         const currentDate = new Date();
         const formattedDate = formatDate(currentDate);
-        setFileName(`file-${formattedDate}.xlsx`);
+        setFileName(`${name}-${formattedDate}.xlsx`);
 
         const blob = new Blob([response.data], {
           type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         });
         const link = document.createElement("a");
         link.href = window.URL.createObjectURL(blob);
-        link.download = `file-${formattedDate}.xlsx`;
+        link.download = `${name}-${formattedDate}.xlsx`;
         link.click();
         setIsSuccessMessage(true);
         // Hide the success message after 3000 milliseconds (3 seconds)
@@ -91,9 +118,14 @@ const HomePage = () => {
   };
 
 
+  /**
+   * Download data in CSV format
+   */
   const handleDownloadCSV = async () => {
     try {
-
+      let ff = selectedValue.split('.');
+      let name = ff[ff.length - 1];
+      strapi.log.info(`handleDownloadCSV: RUN ${selectedValue} => ${name}`);
       const response = await axios.get(
         `${baseUrl}/excel-export/download/csv`,
         {
@@ -108,13 +140,13 @@ const HomePage = () => {
       if (response.data) {
         const currentDate = new Date();
         const formattedDate = formatDate(currentDate);
-        setFileName(`file-${formattedDate}.csv`);
+        setFileName(`${name}-${formattedDate}.csv`);
         const blob = new Blob([response.data], {
           type: "application/text",
         });
         const link = document.createElement("a");
         link.href = window.URL.createObjectURL(blob);
-        link.download = `file-${formattedDate}.csv`;
+        link.download = `${name}-${formattedDate}.csv`;
         link.click();
         setIsSuccessMessage(true);
         // Hide the success message after 3000 milliseconds (3 seconds)
@@ -123,7 +155,7 @@ const HomePage = () => {
         }, 8000);
       }
     } catch (error) {
-      console.error("Error downloading Excel file:", error);
+      strapi.log.error("Error downloading Excel file:", error);
     }
   };
 
@@ -132,7 +164,11 @@ const HomePage = () => {
     setTableData([]);
   };
 
-  // name is column name, selector is data hash
+  const handleOutputFormatClear = async () => {
+    setSelectedFormat('csv');
+  };
+
+  // name is label key or column name, selector is data hash
   const columnRestructure = columns.map((property) => ({
     name: labels ? labels[property] : property?.charAt(0).toUpperCase() + property?.slice(1).replace(/_/g, " "),
     selector: (row) => row[property],
@@ -246,13 +282,30 @@ const HomePage = () => {
                 </Combobox>
               </Box>
 
-              {selectedValue && (
+              <Box padding={4} width="600px">
+                <Combobox
+                  label="Output Format Type"
+                  size="M"
+                  onChange={handleOutputFormatChange}
+                  value={selectedValue}
+                  placeholder="Select output format type"
+                  onClear={handleOutputFormatClear}
+                >
+                  {exportFormats?.map((item) => (
+                    <ComboboxOption key={item.value} value={item.value}>
+                      {item.label}
+                    </ComboboxOption>
+                  ))}
+                </Combobox>
+              </Box>
+
+              {selectedValue && selectedFormat && (
                 <>
                   <Box padding={4} marginTop={2} className="ml-auto">
                     <Button
                       size="L"
                       variant="default"
-                      onClick={handleDownloadExcel}
+                      onClick={handleDownload}
                     >
                       Download
                     </Button>
