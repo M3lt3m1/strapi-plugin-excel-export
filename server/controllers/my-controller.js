@@ -95,9 +95,13 @@ function jsonToCsv(jsonData=[], _headers=null, separator='\t') {
   const array = typeof jsonData !== 'object' ? JSON.parse(jsonData) : jsonData;
 
   const csvRows = [];
-  
+
+  strapi.log.info(`export.jsonToCsv: labels=${JSON.stringify(_headers, null, 2)}`);
+
   const headers = Array.from(Object.keys(_headers || array[0])).map( key => _headers[key] || key );
   csvRows.push(headers.join(separator));
+
+  strapi.log.info(`export.jsonToCsv: labels=${JSON.stringify(headers, null, 2)}`);
 
   for (const row of array) {
       const values = headers.map(header => {
