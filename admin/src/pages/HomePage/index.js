@@ -56,7 +56,7 @@ const HomePage = () => {
   const handleComboboxChange = async (value) => {
     setSelectedValue(value); // Use the callback form to ensure state is updated
     if (value) {
-      fetchUsers(value, 1, 10);
+      fetchPageData(value, 1, 10);
     }
   };
 
@@ -187,34 +187,42 @@ const HomePage = () => {
 
   // data table functionality
 
-  const fetchUsers = async (value, page, itemsPerPage) => {
+  /**
+   *
+   * @param {string} value collection
+   * @param {number} page
+   * @param {number} itemsPerPage
+   */
+  const fetchPageData = async (value, page, itemsPerPage) => {
     setLoading(true);
     const currentSelectedValue = value; // Store the selectedValue in a variable
 
-    console.log(`fetchUsers: columnRestructure=${JSON.stringify(columnRestructure, null, 2)}`);
+    strapi.log.info(`fetchPageData: columnRestructure=${JSON.stringify(columnRestructure, null, 2)}`);
 
     if (currentSelectedValue) {
       try {
         const offset = (page - 1) * itemsPerPage; // Calculate the offset based on the current page and items per page
         const limit = itemsPerPage;
 
-        const response = await axios.get(
-          `${baseUrl}/excel-export/get/table/data?uid=${value}&limit=${limit}&offset=${offset}`
-        );
+        const response = await axios.get(`${baseUrl}/excel-export/get/table/data?uid=${value}&limit=${limit}&offset=${offset}`);
+
         if (response?.data?.columns) {
-          console.log("fetchUsers: set columns");
+          strapi.log.info("fetchPageData: set columns");
           setColumns(response.data.columns);
         }
+
         if (response?.data?.labels) {
-          console.log("fetchUsers: set labels");
+          strapi.log.info("fetchPageData: set labels");
           setLabels(response.data.labels);
         }
+
         if (response?.data?.data) {
           setTableData(response.data.data);
           setTotalRows(response.data.count);
         }
+
       } catch (error) {
-        console.error("Error fetching table data:", error);
+        strapi.log.error(`fetchPageData: error fetching page ${page} data: ${error.toString()}`);
       } finally {
         setLoading(false);
       }
@@ -222,7 +230,7 @@ const HomePage = () => {
   };
 
   const handlePageChange = (page) => {
-    fetchUsers(selectedValue, page, perPage);
+    fetchPageData(selectedValue, page, perPage);
   };
 
   /**
