@@ -44,7 +44,7 @@ const HomePage = () => {
         setDropDownData(response.data);
         setIsLoading(false);
       } catch (error) {
-        console.error("Error fetching dropdown values:", error);
+        strapi.log.error("Error fetching dropdown values:", error);
         setIsLoading(false);
       }
     };
@@ -113,7 +113,7 @@ const HomePage = () => {
         }, 8000);
       }
     } catch (error) {
-      console.error("Error downloading Excel file:", error);
+      strapi.log.error("Error downloading Excel file:", error);
     }
   };
 
@@ -249,7 +249,7 @@ const HomePage = () => {
       const response = await axios.get(`${baseUrl}/excel-export/get/table/data?uid=${selectedValue}&limit=${limit}&offset=${offset}`);
 
       if (response?.data?.labels) {
-        console.log("handlePerRowsChange: set labels");
+        strapi.log.info("handlePerRowsChange: set labels");
         setLabels(response.data.labels);
       }
 
@@ -259,7 +259,7 @@ const HomePage = () => {
       }
 
     } catch (error) {
-      console.error("Error fetching table data:", error);
+      strapi.log.error("Error fetching table data:", error);
     } finally {
       setLoading(false);
     }
