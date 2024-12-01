@@ -98,15 +98,16 @@ function jsonToCsv(jsonData=[], _headers=null, separator='\t') {
 
   strapi.log.info(`export.jsonToCsv: labels=${JSON.stringify(_headers, null, 2)}`);
 
-  const headers = Array.from(Object.keys(_headers || array[0])).map( key => _headers[key] || key );
+  const fields  = Object.keys(_headers || array[0]);
+  const headers = Array.from(fields).map( key => _headers[key] || key );
   csvRows.push(headers.join(separator));
 
   strapi.log.info(`export.jsonToCsv: labels=${JSON.stringify(headers, null, 2)}`);
 
   for (const row of array) {
-      const values = headers.map(header => {
+      const values = fields.map(header => {
           let escaped = ('' + (row[header]||'')).replace(/"/g, '\\"');  // Escape delle virgolette
-          escaped = escaped.replace(/[\t\r\n]/g, "");;             // rimuove cr lf tab
+          escaped = escaped.replace(/[\t\r\n]/g, "");;                  // rimuove cr lf tab
           return escaped.includes(separator) || escaped.includes('"') || escaped.includes('\n') ? `"${escaped}"` : escaped;
       });
       csvRows.push(values.join(separator));
