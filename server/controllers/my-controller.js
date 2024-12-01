@@ -96,7 +96,7 @@ function jsonToCsv(jsonData=[], _headers=null, separator='\t') {
 
   const csvRows = [];
   
-  const headers = _headers || Object.keys(array[0]);
+  const headers = Array.from(Object.keys(_headers || array[0])).map( key => _headers[key] || key );
   csvRows.push(headers.join(separator));
 
   for (const row of array) {
