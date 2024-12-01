@@ -44,7 +44,7 @@ const HomePage = () => {
         setDropDownData(response.data);
         setIsLoading(false);
       } catch (error) {
-        strapi.log.error("Error fetching dropdown values:", error);
+        console.error("HomePage.useEffect: Error fetching dropdown values:", error);
         setIsLoading(false);
       }
     };
@@ -62,7 +62,7 @@ const HomePage = () => {
 
   //data table pagination
   const handleOutputFormatChange = async (value) => {
-    strapi.log.info(`handleOutputFormatChange: set ${value}`);
+    console.log(`handleOutputFormatChange: set ${value}`);
     setSelectedFormat(value); // Use the callback form to ensure state is updated
   };
 
@@ -83,7 +83,7 @@ const HomePage = () => {
     try {
       let ff = selectedValue.split('.');
       let name = ff[ff.length - 1];
-      strapi.log.info(`handleDownloadExcel: RUN ${selectedValue} => ${name}`);
+      console.log(`handleDownloadExcel: RUN ${selectedValue} => ${name}`);
       const response = await axios.get(`${baseUrl}/excel-export/download/excel`,
         {
           responseType: "arraybuffer",
@@ -113,7 +113,7 @@ const HomePage = () => {
         }, 8000);
       }
     } catch (error) {
-      strapi.log.error("Error downloading Excel file:", error);
+      console.error("handleDownloadExcel: Error downloading Excel file:", error);
     }
   };
 
@@ -125,7 +125,7 @@ const HomePage = () => {
     try {
       let ff = selectedValue.split('.');
       let name = ff[ff.length - 1];
-      strapi.log.info(`handleDownloadCSV: RUN ${selectedValue} => ${name}`);
+      console.log(`handleDownloadCSV: RUN ${selectedValue} => ${name}`);
       const response = await axios.get(
         `${baseUrl}/excel-export/download/csv`,
         {
@@ -155,7 +155,7 @@ const HomePage = () => {
         }, 8000);
       }
     } catch (error) {
-      strapi.log.error("Error downloading Excel file:", error);
+      console.error("handleDownloadCSV: Error downloading Excel file:", error);
     }
   };
 
@@ -197,7 +197,7 @@ const HomePage = () => {
     setLoading(true);
     const currentSelectedValue = value; // Store the selectedValue in a variable
 
-    strapi.log.info(`fetchPageData: columnRestructure=${JSON.stringify(columnRestructure, null, 2)}`);
+    console.log(`fetchPageData: columnRestructure=${JSON.stringify(columnRestructure, null, 2)}`);
 
     if (currentSelectedValue) {
       try {
@@ -207,12 +207,12 @@ const HomePage = () => {
         const response = await axios.get(`${baseUrl}/excel-export/get/table/data?uid=${value}&limit=${limit}&offset=${offset}`);
 
         if (response?.data?.columns) {
-          strapi.log.info("fetchPageData: set columns");
+          console.log("fetchPageData: set columns");
           setColumns(response.data.columns);
         }
 
         if (response?.data?.labels) {
-          strapi.log.info("fetchPageData: set labels");
+          console.log("fetchPageData: set labels");
           setLabels(response.data.labels);
         }
 
@@ -222,7 +222,7 @@ const HomePage = () => {
         }
 
       } catch (error) {
-        strapi.log.error(`fetchPageData: error fetching page ${page} data: ${error.toString()}`);
+        console.error(`fetchPageData: error fetching page ${page} data: ${error.toString()}`);
       } finally {
         setLoading(false);
       }
@@ -244,12 +244,12 @@ const HomePage = () => {
       const offset = (currentPage - 1) * itemsPerPage; // Calculate the offset based on the current page and items per page
       const limit = itemsPerPage;
 
-      strapi.log.info(`handlePerRowsChange: columnRestructure=${JSON.stringify(columnRestructure, null, 2)}`);
+      console.log(`handlePerRowsChange: columnRestructure=${JSON.stringify(columnRestructure, null, 2)}`);
 
       const response = await axios.get(`${baseUrl}/excel-export/get/table/data?uid=${selectedValue}&limit=${limit}&offset=${offset}`);
 
       if (response?.data?.labels) {
-        strapi.log.info("handlePerRowsChange: set labels");
+        console.log("handlePerRowsChange: set labels");
         setLabels(response.data.labels);
       }
 
@@ -259,7 +259,7 @@ const HomePage = () => {
       }
 
     } catch (error) {
-      strapi.log.error("Error fetching table data:", error);
+      console.error("handlePerRowsChange: Error fetching table data:", error);
     } finally {
       setLoading(false);
     }
