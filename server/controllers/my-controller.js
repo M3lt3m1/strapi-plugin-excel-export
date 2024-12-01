@@ -84,6 +84,26 @@ function flatten(data,groupFlag=false) {
     return result;
 }
 
+function jsonToCsv(jsonData=[], _headers=null, separator='\t') {
+  const array = typeof jsonData !== 'object' ? JSON.parse(jsonData) : jsonData;
+
+  const csvRows = [];
+  
+  const headers = _headers || Object.keys(array[0]);
+  csvRows.push(headers.join(','));
+
+  for (const row of array) {
+      const values = headers.map(header => {
+          let escaped = ('' + row[header]).replace(/"/g, '\\"');  // Escape delle virgolette
+          escaped = escaped.replace(/[\t\r\n]/g, "");;             // rimuove cr lf tab
+          return escaped.includes(separator) || escaped.includes('"') || escaped.includes('\n') ? `"${escaped}"` : escaped;
+      });
+      csvRows.push(values.join(separator));
+  }
+
+  return csvRows.join('\n');
+}
+
 module.exports = ({ strapi }) => ({
 
   // select the collections that are defined into the "excel" configuration
@@ -246,14 +266,15 @@ module.exports = ({ strapi }) => ({
 
       return buffer;
     } catch (error) {
-      strapi.log.error("export.downloadExcelError writing buffer:", error);
+      strapi.log.error("export.downloadExcel: ERROR "+error.toString());
     }
+    return null;
   },
 
   async downloadCSV(ctx) {
     try {
 
-      strapi.log.info(`export.downloadExcel: config=${JSON.stringify(excel, null, 2)}`);
+      strapi.log.info(`export.downloadCSV: config=${JSON.stringify(excel, null, 2)}`);
 
       let uid = ctx?.query?.uid;
 
@@ -269,72 +290,19 @@ module.exports = ({ strapi }) => ({
 
       strapi.log.info(`export.downloadCSV: response=${JSON.stringify(response, null, 2).substring(0,500)}...`);
 
-      // format the data
-      let excelData = await this.flattenData(response, excel?.config[uid]);
+      // filter and flatten the data
+      let csvData = await this.flattenData(response, excel?.config[uid]);
 
-      strapi.log.info(`export.downloadCSV: excelData=${JSON.stringify(excelData, null, 2).substring(0,500)}...`);
+      strapi.log.info(`export.downloadCSV: csvData=${JSON.stringify(csvData, null, 2).substring(0,500)}...`);
 
-      // Create a new workbook and add a worksheet
-      const workbook = new ExcelJS.Workbook();
-      const worksheet = workbook.addWorksheet("Sheet 1");
-
-      // Extract column headers dynamically from the data
-      let headers = [
-        ...excel?.config[uid]?.columns,
-        ...Object.keys(excel?.config[uid]?.relations),
-      ];
-
-      // the name of the columns after flattening changes to the name of the labels
-      headers = Object.keys(excel?.config[uid]?.labels||{});
-
-      let labelMap = excel?.config[uid]?.labels||{}
-      let labels = Array.from(headers, (name) => labelMap[name]||name)
-
-      // Transform the original headers to the desired format
-      let headerRestructure = [];
-      // headers?.forEach((element) => {
-      labels?.forEach((element) => {
-        const formattedHeader = element
-          .split("_")
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(" ");
-        headerRestructure.push(formattedHeader);
-      });
-
-      strapi.log.info(`export.downloadCSV: excelHeader=${JSON.stringify(headerRestructure, null, 2)}`);
-
-      // Define dynamic column headers
-      worksheet.columns = headers.map((header, index) => ({
-        header: headerRestructure[index], // Use the formatted header
-        key: header,
-        width: 20,
-      }));
-
-      // Define the dropdown list options for the Gender column
-
-      // Add data to the worksheet, row by row
-      excelData?.forEach((row) => {
-        // Excel will provide a dropdown with these values.
-        worksheet.addRow(row);
-      });
-
-      // Enable text wrapping for all columns
-      worksheet.columns.forEach((column) => {
-        column.alignment = { wrapText: true };
-      });
-
-      // Freeze the first row
-      worksheet.views = [
-        { state: "frozen", xSplit: 0, ySplit: 1, topLeftCell: "A" },
-      ];
-
-      // Write the workbook to a file
-      const buffer = await workbook.xlsx.writeBuffer();
+      // convert flattened data to CSV format
+      let buffer = jsonToCsv(csvData,excel?.config[uid]?.labels?Object.keys(excel?.config[uid]?.labels):null);
 
       return buffer;
     } catch (error) {
-      strapi.log.error("export.downloadCSV: error writing buffer:", error);
+      strapi.log.error("export.downloadCSV: ERROR "+error.toString());
     }
+    return null;
   },
 
   /**
