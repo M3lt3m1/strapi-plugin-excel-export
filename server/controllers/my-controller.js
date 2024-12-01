@@ -85,24 +85,22 @@ function flatten(data,groupFlag=false) {
 }
 
 /**
- *
- * @param {json} jsonData
- * @param {json} _headers
+ * Convert a flat json to a csv
+ * @param {json} jsonData the data to convert to csv
+ * @param {json} labels map each field name to its column label for the header
  * @param {string} separator
- * @returns {string}
+ * @returns {string} the csv version of the json
  */
-function jsonToCsv(jsonData=[], _headers=null, separator='\t') {
+function jsonToCsv(jsonData=[], labels=null, separator='\t') {
   const array = typeof jsonData !== 'object' ? JSON.parse(jsonData) : jsonData;
 
   const csvRows = [];
 
-  strapi.log.info(`export.jsonToCsv: labels=${JSON.stringify(_headers, null, 2)}`);
-
-  const fields  = Object.keys(_headers || array[0]);
-  const headers = Array.from(fields).map( key => _headers[key] || key );
+  const fields  = Object.keys(labels || array[0]);
+  const headers = Array.from(fields).map( key => labels[key] || key );
   csvRows.push(headers.join(separator));
 
-  strapi.log.info(`export.jsonToCsv: labels=${JSON.stringify(headers, null, 2)}`);
+  strapi.log.info(`export.jsonToCsv: labels=${JSON.stringify(labels, null, 2)},fields=${JSON.stringify(fields, null, 2)},headers=${JSON.stringify(headers, null, 2)} `);
 
   for (const row of array) {
       const values = fields.map(header => {
@@ -306,7 +304,7 @@ module.exports = ({ strapi }) => ({
       strapi.log.info(`export.downloadCSV: csvData=${JSON.stringify(csvData, null, 2).substring(0,500)}...`);
 
       // convert flattened data to CSV format
-      let buffer = jsonToCsv(csvData,excel?.config[uid]?.labels?Object.keys(excel?.config[uid]?.labels):null);
+      let buffer = jsonToCsv(csvData,excel?.config[uid]?.labels);
 
       return buffer;
     } catch (error) {
