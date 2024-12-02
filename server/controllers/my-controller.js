@@ -157,13 +157,13 @@ module.exports = ({ strapi }) => ({
     // strapi.log.info(`export.getTableData: queryData[${uid}]=${JSON.stringify(response, null, 2).substring(0,3000)}...`);
 
     // build the header
-    let headers = [
-      ...excel?.config[uid]?.columns,                 // add field names of the collection
-      ...Object.keys(excel?.config[uid]?.relations),  // add field names from relations of the collection
-    ];
+    // let headers = [
+    //   ...excel?.config[uid]?.columns,                 // add field names of the collection
+    //   ...Object.keys(excel?.config[uid]?.relations),  // add field names from relations of the collection
+    // ];
 
     // the name of the columns after flattening changes to the name of the labels
-    headers = Object.keys(excel?.config[uid]?.labels||{});
+    let headers = Object.keys(excel?.config[uid]?.labels||{});
 
     let labelMap = excel?.config[uid]?.labels||{}
     let labels = Array.from(headers, (name) => labelMap[name]||name)
@@ -222,13 +222,13 @@ module.exports = ({ strapi }) => ({
       const worksheet = workbook.addWorksheet("Sheet 1");
 
       // Extract column headers dynamically from the data
-      let headers = [
-        ...excel?.config[uid]?.columns,
-        ...Object.keys(excel?.config[uid]?.relations),
-      ];
+      // let headers = [
+      //   ...excel?.config[uid]?.columns,
+      //   ...Object.keys(excel?.config[uid]?.relations),
+      // ];
 
       // the name of the columns after flattening changes to the name of the labels
-      headers = Object.keys(excel?.config[uid]?.labels||{});
+      let headers = Object.keys(excel?.config[uid]?.labels||{});
 
       let labelMap = excel?.config[uid]?.labels||{}
       let labels = Array.from(headers, (name) => labelMap[name]||name)
@@ -487,7 +487,7 @@ module.exports = ({ strapi }) => ({
       return outItem;
     };
 
-    return data.map((item) => {
+    let outData = data.map((item) => {
       // strapi.log.info(`flattenData: INPUT ITEM ${JSON.stringify(item, null, 2)}\n`);
       item = filterItem('root', item, structureRules, 1);
       // strapi.log.info(`flattenData: FILTERED ITEM ${JSON.stringify(item, null, 2)}\n`);
@@ -495,6 +495,12 @@ module.exports = ({ strapi }) => ({
       // strapi.log.info(`flattenData: FLATTENED ITEM ${JSON.stringify(item, null, 2)}\n`);
       return item;
     });
+
+    if ( structureRules.sort && structureRules.sort.length ) {
+      outData.sort((a, b) => (a[structureRules.sort]||'').localeCompare(b[structureRules.sort]||''));
+    }
+
+    return outData;
 
   }
 

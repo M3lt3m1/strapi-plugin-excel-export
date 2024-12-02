@@ -2,6 +2,7 @@
 module.exports = {
     config: {
         "api::product.product": {
+            sort: "name",
             columns: [
                 "name",
                 "brand",
